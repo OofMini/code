@@ -39,7 +39,7 @@ async fn initialize_state(app: tauri::AppHandle) -> api::Result<()> {
     Ok(())
 }
 
-// Should be call once Vue has mounted the app
+// Should be called once Vue has mounted the app
 #[tracing::instrument(skip_all)]
 #[tauri::command]
 fn show_window(app: tauri::AppHandle) {
@@ -53,17 +53,14 @@ fn show_window(app: tauri::AppHandle) {
             .expect("error while showing error dialog");
     }
     
-    // Once the window is shown, we can focus it
+    // Force focus
     win.set_focus().unwrap();
 }
 
 fn main() {
-    // -------------------------------------------------------------------------
-    // REMOVED: Sentry Initialization (Crash Reporting/Analytics)
-    // To make the app lightweight, we removed the Sentry guard and client init.
-    // -------------------------------------------------------------------------
+    // MODIFICATION: Removed Sentry initialization for privacy/lightweight build
     
-    // Initialize standard logging (keep this for debugging)
+    // Initialize logging
     tracing_subscriber::fmt::init();
 
     let mut builder = tauri::Builder::default();
@@ -72,9 +69,11 @@ fn main() {
     {
         builder = builder.plugin(macos::init());
     }
-    
+
+    // MODIFICATION: Removed .plugin(sentry_tauri::plugin())
+
     builder = builder.plugin(tauri_plugin_single_instance::init(|app, argv, _cwd| {
-        // ... (Keep existing single instance logic) ...
+        // ... Existing single instance logic ...
         app.emit_to("main", "single-instance", argv).unwrap();
         let win = app.get_window("main").unwrap();
         win.set_focus().unwrap();
@@ -99,13 +98,11 @@ fn main() {
             updater_impl_noop::install_update,
         ]);
 
-    // Initialize all API modules
-    // NOTE: You must also modify apps/app/src/api/mod.rs to remove Ads/Analytics plugins!
-    builder = api::init_all(builder); 
+    // Initialize APIs (This calls api/mod.rs)
+    builder = api::init_all(builder);
 
     let result = builder.run(tauri::generate_context!());
 
-    // Critical Error Handling for Windows WebView2
     if let Err(e) = result {
         tracing::error!("Error while running tauri application: {:?}", e);
 
