@@ -2,9 +2,8 @@ use serde::ser::SerializeStruct;
 use serde::{Serialize, Serializer};
 use tauri::{Builder, Runtime};
 
-// MODIFICATION: Comment out these modules so they don't compile
-// pub mod ads;
-// pub mod analytics;
+// REMOVED: pub mod ads;
+// REMOVED: pub mod analytics;
 
 pub mod auth;
 pub mod cache;
@@ -42,10 +41,8 @@ impl Serialize for Void {
 
 pub fn init_all<R: Runtime>(mut builder: Builder<R>) -> Builder<R> {
     builder = builder
-        // MODIFICATION: Removed Ads and Analytics plugins
-        // .plugin(ads::init())
-        // .plugin(analytics::init())
-        
+        // .plugin(ads::init())       <-- REMOVED
+        // .plugin(analytics::init()) <-- REMOVED
         .plugin(auth::init())
         .plugin(cache::init())
         .plugin(friends::init())
@@ -64,6 +61,6 @@ pub fn init_all<R: Runtime>(mut builder: Builder<R>) -> Builder<R> {
         .plugin(tags::init())
         .plugin(utils::init())
         .plugin(worlds::init());
-    
+
     builder
 }
